@@ -65,3 +65,29 @@ export const deleteFromClerk = internalMutation({
     }
   },
 });
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import { calculateVacationDays } from "./breakcalculation";
+
+export const updateAllUsersVacations = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("Users").collect();
+
+    const updates = users.map(async (user) => {
+      if (!user.start_workday) return;
+
+      const newDays = calculateVacationDays(user.start_workday);
+
+      if (user.days_break !== newDays) {
+        await ctx.db.patch(user._id, {
+          days_break: newDays,
+          date_update: Date.now(),
+        });
+      }
+    });
+
+    await Promise.all(updates);
+    console.log(`Vacaciones actualizadas para ${users.length} usuarios.`);
+  },
+});

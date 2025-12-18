@@ -9,6 +9,8 @@
  */
 
 import type * as Users from "../Users.js";
+import type * as breakcalculation from "../breakcalculation.js";
+import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 
 import type {
@@ -19,6 +21,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   Users: typeof Users;
+  breakcalculation: typeof breakcalculation;
+  crons: typeof crons;
   http: typeof http;
 }>;
 
