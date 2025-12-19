@@ -1,10 +1,5 @@
-// schemas/index.ts
-import project from './project'
-import employee from './employee'
+import { SchemaTypeDefinition } from 'sanity'
+import user from './user'
+import vacationRequest from './vacationRequest'
 
-export const schemaTypes = [project, employee]
-
-// Exportar tipos para uso externo
-export type { 
-  Employee, Project, EmployeeRole, ProjectStatus, //Department 
-} from './types'
+export const schemaTypes: SchemaTypeDefinition[] = [user, vacationRequest]
