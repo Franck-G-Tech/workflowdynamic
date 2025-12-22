@@ -10,7 +10,7 @@ export const dynamicWorkflow = inngest.createFunction(
     if (!event.data || !event.data.triggerId) {
         return { 
             status: "error", 
-            message: "El evento no tiene datos. Falta triggerId." 
+            message: "❌ El evento no tiene datos. Falta triggerId." 
         };
     }
     
@@ -26,7 +26,7 @@ export const dynamicWorkflow = inngest.createFunction(
       return { message: "No workflow definition found." };
     }
 
-    // 3. Iterar los pasos
+    // 3. Iterar los pasos (LA CORRECCIÓN ESTÁ AQUÍ)
     for (let i = 0; i < workflowDoc.steps.length; i++) {
       const currentStep = workflowDoc.steps[i];
       // Creamos un ID único para cada paso
@@ -35,11 +35,9 @@ export const dynamicWorkflow = inngest.createFunction(
       // --- CASO A: ES UNA ACCIÓN (Usamos step.run) ---
       if (currentStep._type === 'action') {
           await step.run(stepId, async () => {
-            console.log(`Ejecutando acción: ${currentStep.actionType}`);
-            console.log(`Mensaje: ${currentStep.message}`);
-
-            // Se agrega codigo despues
-
+            console.log(`⚡ Ejecutando acción: ${currentStep.actionType}`);
+            console.log(`📩 Mensaje: ${currentStep.message}`);
+            // Aquí llamarías a tu API de email real
             return { executed: true, type: currentStep.actionType };
           });
       } 
@@ -47,7 +45,7 @@ export const dynamicWorkflow = inngest.createFunction(
       // --- CASO B: ES UN DELAY SIMPLE (Usamos step.sleep o delay simulado) ---
       else if (currentStep._type === 'delay') {
           await step.run(stepId, async () => {
-            console.log(`Durmiendo por ${currentStep.durationMs}ms`);
+            console.log(`💤 Durmiendo por ${currentStep.durationMs}ms`);
             await new Promise(r => setTimeout(r, currentStep.durationMs));
             return { slept: true };
           });
@@ -55,7 +53,7 @@ export const dynamicWorkflow = inngest.createFunction(
 
       // --- CASO C: APROBACIÓN HUMANA (Directo, SIN step.run envolvente) ---
       else if (currentStep._type === 'approval') {
-          console.log(`Esperando aprobación de: ${currentStep.approverEmail}`);
+          console.log(`✋ Esperando aprobación de`);
           
           // Nota: waitForEvent recibe el stepId como primer argumento
           const approvalEvent = await step.waitForEvent(stepId, {
@@ -68,11 +66,11 @@ export const dynamicWorkflow = inngest.createFunction(
 
           if (isApproved) {
             // Usamos step.run solo para dejar registro en el log de que pasó
-            await step.run(`${stepId}-result`, async () => "Aprobado");
-            console.log("Aprobado! Continuando al siguiente paso...");
+            await step.run(`${stepId}-result`, async () => "✅ Aprobado");
+            console.log("✅ Aprobado! Continuando al siguiente paso...");
           } else {
-            await step.run(`${stepId}-result`, async () => "Rechazado");
-            console.log("Rechazado o Expirado. Deteniendo workflow.");
+            await step.run(`${stepId}-result`, async () => "⛔ Rechazado");
+            console.log("⛔ Rechazado o Expirado. Deteniendo workflow.");
             
             return { 
                 status: "stopped", 

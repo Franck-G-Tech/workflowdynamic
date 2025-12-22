@@ -7,6 +7,6 @@ function assertValue(v: string | undefined) {
   return v;
 }
 
-const sanity = assertValue(process.env.NEXT_PUBLIC_SANITY_DATASET);
+//const sanity = assertValue(process.env.NEXT_PUBLIC_SANITY_DATASET);
 
-export const inngest = new Inngest({ id: sanity });
+export const inngest = new Inngest({ id: "my-workflow-final" });
