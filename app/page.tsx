@@ -6,21 +6,22 @@ export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-gray-900 text-white">
-      <h1 className="text-3xl font-bold">Bienvenido</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen gap-8 bg-[#11131f]">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-medium text-gray-300">Gestión de Vacaciones</h2>
+        <p className="text-gray-500">Selecciona el módulo para continuar</p>
+      </div>
 
       <div className="flex gap-4">
-        {/* Botón Solicitud */}
         <button
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
+          className="px-10 py-3 bg-[#1d4ed8] hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-xl active:scale-95"
           onClick={() => router.push("/studio")}
         >
           Solicitud
         </button>
 
-        {/* Botón Panel Admin */}
         <button
-          className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition"
+          className="px-10 py-3 bg-[#059669] hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-xl active:scale-95"
           onClick={() => router.push("/admin")}
         >
           Panel Admin
