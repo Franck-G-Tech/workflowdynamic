@@ -16,7 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
+      <html>
+        <body>
           {children}
+        </body>
+      </html>
     </ClerkProvider>
   )
 }
