@@ -46,10 +46,10 @@ export const workflow = {
               initialValue: '24h'
             },
             { 
-              name: 'approverEmail', 
+              name: 'idUser', 
               type: 'string', 
-              title: 'Approver Email (Security)',
-              description: 'Solo este email podrá aprobar el paso.'
+              title: 'Quien aprobara o declinara',
+              description: 'Solo este usuario podrá aprobar el paso.'
             }
           ]
         }
