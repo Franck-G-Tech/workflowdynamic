@@ -15,6 +15,7 @@
     "@sanity/vision": "^4.22.0",
     "convex": "^1.31.2",
     "inngest": "^3.48.1",
+    "lucide-react": "^0.562.0",
     "next": "16.0.10",
     "next-sanity": "^11.6.12",
     "react": "19.2.1",
