@@ -1,6 +1,8 @@
 import { inngest } from "../../inngest/client";
-import { client as sanity } from "../../lib/sanity";
 import { GetStepTools } from "inngest";
+import { fetchMutation } from "convex/nextjs";
+import { api } from "../_generated/api";
+import { Id } from "../_generated/dataModel";
 
 // Tipo para el resultado de la aprobación
 type ApprovalResultType = {
@@ -16,12 +18,22 @@ export async function handleApprovalResult(
   step: InngestStep,
   stepId: string,
   isApproved: boolean,
-  stepIndex: number
+  stepIndex: number,
+  requestId: string,
+  responderId?: string
 ): Promise<ApprovalResultType> {
+
+  const convexRequestId = requestId as Id<"Vacation_request">;
 
   if (isApproved) {
     const message = "✅ Aprobado";
-    await step.run(`${stepId}-result`, async () => message);
+    await step.run(`${stepId}-result`, async () => {
+      await fetchMutation(api.vacations.updateStatus, {
+        requestId: convexRequestId,
+        status: "aprove",
+      });
+      return message;
+    });
     console.log(`${message}! Continuando al siguiente paso...`);
 
     return {
@@ -31,7 +43,13 @@ export async function handleApprovalResult(
     };
   } else {
     const message = "⛔ Rechazado";
-    await step.run(`${stepId}-result`, async () => message);
+    await step.run(`${stepId}-result`, async () => {
+      await fetchMutation(api.vacations.updateStatus, {
+        requestId: convexRequestId,
+        status: "reject",
+      });
+      return message;
+    });
     console.log(`${message} o Expirado. Deteniendo workflow.`);
 
     return {
@@ -62,27 +80,12 @@ export const getVacationRechazado = inngest.createFunction(
       };
     }
 
-    // Obtener la solicitud de Sanity
-    const vacationRequest = await step.run("fetch-vacation-request", async () => {
-      return await sanity.fetch(
-        `*[_type == "vacationRequest" && _id == $id][0]`,
-        { id: requestId }
-      );
-    });
-
-    if (!vacationRequest) {
-      return {
-        status: "error",
-        message: "❌ No se encontró la solicitud de vacaciones"
-      };
-    }
-
-    // Actualizar el estado a rechazado en Sanity
+    // Actualizar el estado a rechazado en Convex
     await step.run("update-status-rejected", async () => {
-      return await sanity
-        .patch(requestId)
-        .set({ status: "reject" })
-        .commit();
+      await fetchMutation(api.vacations.updateStatus, {
+        requestId: requestId as Id<"Vacation_request">,
+        status: "reject"
+      });
     });
 
     console.log(`⛔ Solicitud de vacaciones ${requestId} marcada como rechazada`);
