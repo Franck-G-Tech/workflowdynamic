@@ -20,7 +20,6 @@ export async function handleApprovalResult(
   isApproved: boolean,
   stepIndex: number,
   requestId: string,
-  responderId?: string
 ): Promise<ApprovalResultType> {
 
   const convexRequestId = requestId as Id<"Vacation_request">;

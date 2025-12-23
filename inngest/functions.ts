@@ -97,7 +97,7 @@ export const dynamicWorkflow = inngest.createFunction(
             stepId,
             !!isApproved,
             i,
-            approvalEvent.data.solicitudId // Pass requestId
+            approvalEvent.data.solicitudId 
           );
 
           if (!approvalResult.shouldContinue) {
