@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import Navbar from '@/components/Navbar';
 import './globals.css';
+import { ConvexClientProvider } from "./ConvexClientProider";
 
 export const metadata: Metadata = {
   title: 'WorkFlow - Vacaciones',
@@ -19,7 +20,7 @@ export default function RootLayout({
         <body className="bg-[#11131f] text-white min-h-screen relative overflow-x-hidden">
           <Navbar />
           <main className="min-h-screen w-full">
-            {children}
+            <ConvexClientProvider>{children}</ConvexClientProvider>
           </main>
         </body>
       </html>
