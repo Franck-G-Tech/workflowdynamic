@@ -22,21 +22,22 @@ export default defineSchema({
   .index("by_name", ["name"]),
 
   Vacation_request: defineTable({
-    user_id: v.id("Users"),
+    user_id: v.optional(v.id("Users")),
     description: v.optional(v.string()),
     start_day: v.number(),
     end_day: v.number(),
-    answers: v.array(
+    answers: v.optional(v.array(
         v.object({
             id_user: v.id("Users"),
             answer: v.boolean(),
             coment: v.optional(v.string()),
-        })
+        }))
     ),
     status: v.union(
         v.literal("progress"),
         v.literal("aprove"),
         v.literal("reject"),
-    )
+    ),
+    clerk_id: v.optional(v.string()),
   })
 });
