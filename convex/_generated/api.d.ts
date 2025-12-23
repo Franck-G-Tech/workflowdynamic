@@ -11,6 +11,7 @@
 import type * as Users from "../Users.js";
 import type * as breakcalculation from "../breakcalculation.js";
 import type * as crons from "../crons.js";
+import type * as functions_vacation_request from "../functions/vacation_request.js";
 import type * as http from "../http.js";
 
 import type {
@@ -23,6 +24,7 @@ declare const fullApi: ApiFromModules<{
   Users: typeof Users;
   breakcalculation: typeof breakcalculation;
   crons: typeof crons;
+  "functions/vacation_request": typeof functions_vacation_request;
   http: typeof http;
 }>;
 
