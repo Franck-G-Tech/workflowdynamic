@@ -12,6 +12,7 @@ import type * as Users from "../Users.js";
 import type * as breakcalculation from "../breakcalculation.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
+import type * as requests from "../requests.js";
 import type * as sanityIntegration from "../sanityIntegration.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   breakcalculation: typeof breakcalculation;
   crons: typeof crons;
   http: typeof http;
+  requests: typeof requests;
   sanityIntegration: typeof sanityIntegration;
 }>;
 
