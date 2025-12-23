@@ -15,7 +15,7 @@ export default function HomePage() {
       <div className="flex gap-4">
         <button
           className="px-10 py-3 bg-[#1d4ed8] hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-xl active:scale-95"
-          onClick={() => router.push("/studio")}
+          onClick={() => router.push("/requests/new")}
         >
           Solicitud
         </button>

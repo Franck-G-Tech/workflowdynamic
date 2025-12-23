@@ -9,15 +9,16 @@ const initialState = {
     success: false
 }
 
-export default function VacationRequestForm({ sanityUserId }: { sanityUserId: string }) {
+export default function VacationRequestForm({ sanityUserId, clerkUserId }: { sanityUserId: string, clerkUserId: string }) {
     const [state, formAction, isPending] = useActionState(createVacationRequest, initialState);
 
     return (
         <form action={formAction} className="space-y-4 max-w-md mx-auto p-6 bg-white shadow rounded-lg">
             <h2 className="text-xl font-bold mb-4 text-black">Nueva Solicitud de Vacaciones</h2>
 
-            {/* Campo oculto para pasar el ID de Sanity */}
+            {/* Campo oculto para pasar el ID de Sanity y Clerk */}
             <input type="hidden" name="sanityUserId" value={sanityUserId} />
+            <input type="hidden" name="clerkUserId" value={clerkUserId} />
 
             <div>
                 <label className="block text-sm font-medium text-gray-700">Fecha de Inicio</label>

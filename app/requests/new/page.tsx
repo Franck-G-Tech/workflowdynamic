@@ -38,7 +38,7 @@ export default async function NewRequestPage() {
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <VacationRequestForm sanityUserId={sanityUser._id} />
+                <VacationRequestForm sanityUserId={sanityUser._id} clerkUserId={user.id} />
             </div>
         </div>
     );
