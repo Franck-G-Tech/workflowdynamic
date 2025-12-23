@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const createRequest = mutation({
@@ -29,5 +29,49 @@ export const createRequest = mutation({
       status: "progress",
       answers: [],
     });
+  },
+});
+
+
+////////////////////
+export const updateStatus = mutation({
+  args: {
+    requestId: v.id("Vacation_request"),
+    status: v.union(
+      v.literal("progress"),
+      v.literal("aprove"),
+      v.literal("reject")
+    ),
+  },
+  handler: async (ctx, args) => {
+    // 1. Verificar si la solicitud existe
+    const request = await ctx.db.get(args.requestId);
+    if (!request) {
+      throw new Error("La solicitud de vacaciones no existe");
+    }
+ 
+    // 2. Actualizar solo el campo status
+    await ctx.db.patch(args.requestId, {
+      status: args.status,
+    });
+ 
+    return {
+      success: true,
+      requestId: args.requestId,
+      newStatus: args.status,
+    };
+  },
+});
+
+
+export const getAllRequests = query({
+  args: {},
+  handler: async (ctx) => {
+    const requests = await ctx.db
+      .query("Vacation_request")
+      .order("desc")
+      .collect();
+ 
+    return requests;
   },
 });
