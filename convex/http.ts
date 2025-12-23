@@ -19,9 +19,21 @@ http.route({
 
       switch (event.type) {
         case 'user.created': {
+          const userData = event.data;
           await ctx.runMutation(internal.Users.upsertFromClerk, {
             event_type: event.type,
             data: { ...event.data },
+          });
+
+          const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+          const email = userData.email_addresses?.[0]?.email_address || "";
+
+          await ctx.runAction(internal.sanityIntegration.createSanityUser, {
+            clerkId: event.data.id,
+            name: fullName || "Usuario sin nombre",
+            email: email,
+            avatarUrl: userData.image_url,
+            data: { ...event.data }
           });
 
           break;
@@ -90,5 +102,9 @@ async function validateRequest(req: Request): Promise<WebhookEvent | null> {
     return null;
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
 
 export default http;

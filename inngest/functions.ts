@@ -10,7 +10,7 @@ export const dynamicWorkflow = inngest.createFunction(
     if (!event.data || !event.data.triggerId) {
         return { 
             status: "error", 
-            message: "❌ El evento no tiene datos. Falta triggerId." 
+            message: "El evento no tiene datos. Falta triggerId." 
         };
     }
     
@@ -26,57 +26,82 @@ export const dynamicWorkflow = inngest.createFunction(
       return { message: "No workflow definition found." };
     }
 
-    // 3. Iterar los pasos (LA CORRECCIÓN ESTÁ AQUÍ)
+    // 3. Iterar los pasos
     for (let i = 0; i < workflowDoc.steps.length; i++) {
       const currentStep = workflowDoc.steps[i];
-      // Creamos un ID único para cada paso
       const stepId = `step-${i}-${currentStep._type}`;
 
-      // --- CASO A: ES UNA ACCIÓN (Usamos step.run) ---
+      // --- CASO A: ES UNA ACCIÓN ---
       if (currentStep._type === 'action') {
           await step.run(stepId, async () => {
             console.log(`⚡ Ejecutando acción: ${currentStep.actionType}`);
-            console.log(`📩 Mensaje: ${currentStep.message}`);
-            // Aquí llamarías a tu API de email real
+            console.log(`Mensaje: ${currentStep.message}`);
+            
             return { executed: true, type: currentStep.actionType };
           });
       } 
       
-      // --- CASO B: ES UN DELAY SIMPLE (Usamos step.sleep o delay simulado) ---
+      // --- CASO B: ES UN DELAY ---
       else if (currentStep._type === 'delay') {
-          await step.run(stepId, async () => {
-            console.log(`💤 Durmiendo por ${currentStep.durationMs}ms`);
-            await new Promise(r => setTimeout(r, currentStep.durationMs));
-            return { slept: true };
-          });
+          // CORRECCIÓN: step.sleep no debe ir dentro de step.run
+          console.log(`💤 Durmiendo por ${currentStep.durationMs}ms`);
+          await step.sleep(stepId, currentStep.durationMs);
       }
 
-      // --- CASO C: APROBACIÓN HUMANA (Directo, SIN step.run envolvente) ---
+      // --- CASO C: APROBACIÓN HUMANA (Con Bucle de Seguridad) ---
       else if (currentStep._type === 'approval') {
-          console.log(`✋ Esperando aprobación de`);
-          
-          // Nota: waitForEvent recibe el stepId como primer argumento
-          const approvalEvent = await step.waitForEvent(stepId, {
-            event: "workflow.approve",
-            timeout: currentStep.timeout || "24h",
-            match: "data.userId",
-          });
+          const usuarioAutorizado = currentStep.idUser; 
+          console.log(`Este paso solo puede ser aprobado por: ${usuarioAutorizado}`);
 
-          const isApproved = approvalEvent?.data?.approved;
+          let decisionFinalTomada = false;
+          let intento = 0;
 
-          if (isApproved) {
-            // Usamos step.run solo para dejar registro en el log de que pasó
-            await step.run(`${stepId}-result`, async () => "✅ Aprobado");
-            console.log("✅ Aprobado! Continuando al siguiente paso...");
-          } else {
-            await step.run(`${stepId}-result`, async () => "⛔ Rechazado");
-            console.log("⛔ Rechazado o Expirado. Deteniendo workflow.");
-            
-            return { 
-                status: "stopped", 
-                reason: "Rejected by user or timed out",
-                stoppedAtStep: i 
-            };
+          while (!decisionFinalTomada) {
+            intento++;
+            const waitStepId = `${stepId}-wait-attempt-${intento}`;
+
+            const approvalEvent = await step.waitForEvent(waitStepId, {
+              event: "workflow.approve",
+              timeout: currentStep.timeout || "24h",
+              match: "data.solicitudId", 
+            });
+
+            if (!approvalEvent) {
+               await step.run(`${stepId}-timeout`, async () => "Tiempo agotado");
+               return { 
+                   status: "stopped", 
+                   reason: "Timeout waiting for approval", 
+                   stoppedAtStep: i 
+               };
+            }
+
+            const quienRespondio = approvalEvent.data.identificador;
+
+            console.log(`${quienRespondio} es ${usuarioAutorizado}`);
+
+            if (quienRespondio !== usuarioAutorizado) {
+               await step.run(`${stepId}-security-alert-${intento}`, async () => {
+                 console.warn(`ALERTA: Usuario ${quienRespondio} intentó aprobar sin permiso.`);
+                 return `Intento fallido #${intento}`;
+               });
+               
+               continue; 
+            }
+
+            const isApproved = approvalEvent.data.approved;
+            decisionFinalTomada = true;
+
+            if (isApproved) {
+              await step.run(`${stepId}-result`, async () => "Aprobado");
+            } else {
+              await step.run(`${stepId}-result`, async () => "Rechazado");
+              
+              return { 
+                  status: "stopped", 
+                  reason: "Rejected by user",
+                  stoppedAtStep: i 
+              };
+            }
           }
       }
     }
