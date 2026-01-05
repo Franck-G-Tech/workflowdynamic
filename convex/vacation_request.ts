@@ -3,7 +3,7 @@ import { GetStepTools } from "inngest";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // Tipo para el resultado de la aprobación
@@ -159,4 +159,24 @@ export const registrarRespuesta = mutation({
 
         return { success: true };
     },
+});
+
+export const getRequestsByUser = query({
+  args: {
+    clerkId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const allRequests = await ctx.db.query("Vacation_request").collect();
+
+    const userRequests = allRequests.filter((req) => {
+      
+      const isCreator = req.clerk_id === args.clerkId;
+
+      const isApprover = req.answers?.some((answer) => answer.clerk_id === args.clerkId);
+
+      return isCreator || isApprover;
+    });
+
+    return userRequests;
+  },
 });
