@@ -1,4 +1,5 @@
-import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { httpAction, internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const createRequest = mutation({
@@ -20,7 +21,7 @@ export const createRequest = mutation({
     }
 
     // 2. Create the request linked to that user
-    await ctx.db.insert("Vacation_request", {
+    const response = await ctx.db.insert("Vacation_request", {
       user_id: user._id, 
       clerk_id: args.clerk_id,
       description: args.description,
@@ -29,9 +30,61 @@ export const createRequest = mutation({
       status: "progress",
       answers: [],
     });
+
+    await ctx.scheduler.runAfter(0, internal.requests.sendToInngest, {
+      solicitudId: response,
+      clerkId: args.clerk_id
+    });
   },
 });
 
+////////////////////////////////////////////////////Envio de JSON a Inggest////////////////////////////////////
+export const sendToInngest = internalAction({
+  args: {
+    solicitudId: v.id("Vacation_request"),
+    clerkId: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const inngestUrl = process.env.INNGEST_API_URL || "https://api.inngest.com/v1/events";
+    const eventKey = process.env.INNGEST_EVENT_KEY;
+
+    console.log(inngestUrl);
+
+    if (!eventKey) {
+      console.warn("No se encontró INNGEST_EVENT_KEY, evento omitido.");
+      return;
+    }
+
+    try {
+      const response = await fetch(inngestUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${eventKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "workflow.trigger",
+          data: {
+            triggerId: "user.vacation",
+            solicitudId: args.solicitudId,
+            clerkId: args.clerkId,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error enviando a Inngest (${response.status}): ${errorText}`);
+      }
+
+      console.log(`Evento enviado a Inngest para solicitud: ${args.solicitudId}`);
+    } catch (error) {
+      // Al lanzar el error aquí, Convex lo registrará en los logs de fallos
+      console.error("Fallo al conectar con Inngest:", error);
+      throw error; 
+    }
+  },
+});
 
 ////////////////////
 export const updateStatus = mutation({
