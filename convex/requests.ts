@@ -1,5 +1,7 @@
-import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { httpAction, internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { inngest } from "./inngest";
 
 export const createRequest = mutation({
   args: {
@@ -20,7 +22,7 @@ export const createRequest = mutation({
     }
 
     // 2. Create the request linked to that user
-    await ctx.db.insert("Vacation_request", {
+    const response = await ctx.db.insert("Vacation_request", {
       user_id: user._id, 
       clerk_id: args.clerk_id,
       description: args.description,
@@ -29,9 +31,39 @@ export const createRequest = mutation({
       status: "progress",
       answers: [],
     });
+
+    await ctx.scheduler.runAfter(0, internal.requests.sendToInngest, {
+      solicitudId: response,
+      clerkId: args.clerk_id
+    });
   },
 });
 
+////////////////////////////////////////////////////Envio de JSON a Inggest////////////////////////////////////
+export const sendToInngest = internalAction({
+  args: {
+    solicitudId: v.id("Vacation_request"),
+    clerkId: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    
+    try {
+      await inngest.send({
+        name: "workflow.trigger",
+        data: {
+          triggerId: "user.vacation",
+          solicitudId: args.solicitudId,
+          clerkId: args.clerkId,
+        },
+      });
+ 
+      console.log(`Evento enviado correctamente a Inngest: ${args.solicitudId}`);
+    } catch (error) {
+      console.error("Error enviando evento con SDK:", error);
+      throw error;
+    }
+  },
+});
 
 ////////////////////
 export const updateStatus = mutation({

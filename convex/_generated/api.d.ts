@@ -13,9 +13,10 @@ import type * as breakcalculation from "../breakcalculation.js";
 import type * as crons from "../crons.js";
 import type * as functions_vacation_request from "../functions/vacation_request.js";
 import type * as http from "../http.js";
+import type * as inngest from "../inngest.js";
 import type * as requests from "../requests.js";
 import type * as sanityIntegration from "../sanityIntegration.js";
-import type * as vacations from "../vacations.js";
+import type * as vacation_request from "../vacation_request.js";
 
 import type {
   ApiFromModules,
@@ -29,9 +30,9 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   "functions/vacation_request": typeof functions_vacation_request;
   http: typeof http;
+  inngest: typeof inngest;
   requests: typeof requests;
   sanityIntegration: typeof sanityIntegration;
-  vacations: typeof vacations;
 }>;
 
 /**
