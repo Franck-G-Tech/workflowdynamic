@@ -46,10 +46,14 @@ export const workflow = {
               initialValue: '24h'
             },
             { 
-              name: 'idUser', 
-              type: 'string', 
-              title: 'Quien aprobara o declinara',
-              description: 'Solo este usuario podrá aprobar el paso.'
+              name: 'approver',
+              title: 'Quien aprobará o declinará',
+              description: 'Selecciona el usuario autorizado para aprobar este paso.',
+              type: 'reference',
+              to: [{ type: 'user' }],
+              options: {
+                disableNew: true,
+              },
             }
           ]
         }
