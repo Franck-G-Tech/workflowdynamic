@@ -100,39 +100,63 @@ export const getVacationRechazado = inngest.createFunction(
 );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-export const addAnswer = mutation({
+export const solicitarRespuesta = mutation({
     args: {
         requestId: v.id("Vacation_request"),
-        id_user: v.id("Users"),
+        clerk_id: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const request = await ctx.db.get(args.requestId);
+        if (!request) throw new Error("Solicitud no encontrada");
+
+        const currentAnswers = request.answers || [];
+
+        const alreadyExists = currentAnswers.some((a) => a.clerk_id === args.clerk_id);
+        if (alreadyExists) {
+            console.log("El usuario ya está asignado para aprobar");
+            return;
+        }
+
+        const newAnswers = [
+            ...currentAnswers, 
+            { clerk_id: args.clerk_id }
+        ];
+
+        await ctx.db.patch(args.requestId, { answers: newAnswers });
+    },
+});
+
+export const registrarRespuesta = mutation({
+    args: {
+        requestId: v.id("Vacation_request"),
+        clerk_id: v.string(),
         answer: v.boolean(),
         coment: v.optional(v.string())
     },
     handler: async (ctx, args) => {
-        const { requestId, id_user, answer, coment } = args;
- 
-        // Obtener el documento actual
-        const request = await ctx.db.get(requestId);
-        if (!request) {
-            throw new Error("Vacacion no encontrada");
-        }
- 
-        // Obtener las respuestas actuales o crear array vacío
+        const request = await ctx.db.get(args.requestId);
+        if (!request) throw new Error("Solicitud no encontrada");
+
         const currentAnswers = request.answers || [];
- 
-        // Crear la nueva respuesta con timestamp
-        const newAnswer = {
-            id_user,
-            answer,
-            coment,
-            answered_at: Date.now() // Registra cuándo se hizo la modificación
+
+        // 1. Buscamos el índice donde está este clerk_id
+        const index = currentAnswers.findIndex((a) => a.clerk_id === args.clerk_id);
+
+        if (index === -1) {
+            throw new Error("Este usuario no estaba autorizado para aprobar esta solicitud.");
+        }
+
+        // 2. Modificamos ESE objeto específico dentro del array
+        // Usamos spread operator (...) para mantener el clerk_id y sobreescribir lo demás
+        currentAnswers[index] = {
+            ...currentAnswers[index],
+            answer: args.answer,
+            coment: args.coment
         };
- 
-        // Agregar la nueva respuesta al array
-        const updatedAnswers = [...currentAnswers, newAnswer];
- 
-        // Actualizar el documento
-        await ctx.db.patch(requestId, { answers: updatedAnswers });
- 
-        return { success: true, answeredBy: id_user };
+
+        // 3. Guardamos el array actualizado
+        await ctx.db.patch(args.requestId, { answers: currentAnswers });
+
+        return { success: true };
     },
 });

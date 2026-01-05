@@ -1,5 +1,12 @@
 import { inngest } from "./client";
 import { client as sanity } from "@/lib/sanity";
+// 1. Importa el cliente HTTP de Convex y tu API
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api"; 
+import { Id } from "@/convex/_generated/dataModel";
+
+// 2. Inicializa el cliente fuera de la función
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export const dynamicWorkflow = inngest.createFunction(
   { id: "dynamic-workflow-runner" },
@@ -70,7 +77,15 @@ export const dynamicWorkflow = inngest.createFunction(
           //console.log("El Clerk ID del aprobador es:", currentStep.approverClerkId);
 
           //manda a convex la solicitud
-
+          await step.run(`${stepId}-assign-approver-convex`, async () => {
+            // Nota: Reemplaza 'vacations' por el nombre real de tu archivo en convex/
+            // ej: api.requests.solicitarRespuesta o api.vacations.solicitarRespuesta
+            await convex.mutation(api.vacation_request.solicitarRespuesta, {
+                requestId: event.data.solicitudId as Id<"Vacation_request">, // Casteamos el ID
+                clerk_id: usuarioAutorizado
+            });
+            return "Aprobador asignado en Convex";
+          });
 
           while (!decisionFinalTomada) {
             intento++;
