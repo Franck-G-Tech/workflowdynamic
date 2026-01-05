@@ -3,6 +3,8 @@ import { GetStepTools } from "inngest";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
+import { mutation } from "./_generated/server";
+import { v } from "convex/values";
 
 // Tipo para el resultado de la aprobación
 type ApprovalResultType = {
@@ -96,3 +98,41 @@ export const getVacationRechazado = inngest.createFunction(
     };
   }
 );
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+export const addAnswer = mutation({
+    args: {
+        requestId: v.id("Vacation_request"),
+        id_user: v.id("Users"),
+        answer: v.boolean(),
+        coment: v.optional(v.string())
+    },
+    handler: async (ctx, args) => {
+        const { requestId, id_user, answer, coment } = args;
+ 
+        // Obtener el documento actual
+        const request = await ctx.db.get(requestId);
+        if (!request) {
+            throw new Error("Vacacion no encontrada");
+        }
+ 
+        // Obtener las respuestas actuales o crear array vacío
+        const currentAnswers = request.answers || [];
+ 
+        // Crear la nueva respuesta con timestamp
+        const newAnswer = {
+            id_user,
+            answer,
+            coment,
+            answered_at: Date.now() // Registra cuándo se hizo la modificación
+        };
+ 
+        // Agregar la nueva respuesta al array
+        const updatedAnswers = [...currentAnswers, newAnswer];
+ 
+        // Actualizar el documento
+        await ctx.db.patch(requestId, { answers: updatedAnswers });
+ 
+        return { success: true, answeredBy: id_user };
+    },
+});
