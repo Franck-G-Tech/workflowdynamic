@@ -6,11 +6,8 @@ import { redirect } from "next/navigation";
 export default async function NewRequestPage() {
     const user = await currentUser();
 
-    if (!user) {
-        redirect("/sign-in");
-    }
+    if (!user) redirect("/sign-in");
 
-    // Buscar el usuario en Sanity usando el Clerk ID
     const sanityUser = await client.fetch(
         `*[_type == "user" && clerk_id == $clerkId][0]`,
         { clerkId: user.id }
@@ -18,26 +15,27 @@ export default async function NewRequestPage() {
 
     if (!sanityUser) {
         return (
-            <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold text-red-600">Usuario no encontrado</h1>
-                <p>No se encontró un perfil de usuario en el sistema vinculado a tu cuenta.</p>
-                <p className="text-sm text-gray-500 mt-2">Clerk ID: {user.id}</p>
+            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-6">
+                <div className="text-center p-8 bg-[#1e293b] rounded-2xl border border-red-500/20">
+                    <h1 className="text-red-500 font-bold text-xl">Usuario no encontrado</h1>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="text-center text-3xl font-extrabold text-gray-900">
+        <div className="min-h-screen bg-[#0b0e14] flex flex-col justify-center py-12 px-4">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md mb-8 text-center">
+                <h2 className="text-3xl font-black text-white tracking-tight">
                     Solicitar Vacaciones
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
-                    Hola, {sanityUser.name}. Completa el formulario para solicitar tus días.
+                <p className="mt-3 text-gray-400">
+                    Hola, <span className="text-blue-500 font-medium">{sanityUser.name}</span>. 
+                    Indica tus fechas de descanso.
                 </p>
             </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <VacationRequestForm sanityUserId={sanityUser._id} clerkUserId={user.id} />
             </div>
         </div>
