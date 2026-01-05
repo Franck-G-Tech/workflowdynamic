@@ -26,6 +26,13 @@ export default function HomePage() {
         >
           Panel Admin
         </button>
+
+        <button
+          className="px-10 py-3 bg-[#059669] hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-xl active:scale-95"
+          onClick={() => router.push("/studio/")}
+        >
+          Panel Saniti
+        </button>
       </div>
     </div>
   );
