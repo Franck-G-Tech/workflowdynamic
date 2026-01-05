@@ -56,6 +56,9 @@ export const dynamicWorkflow = inngest.createFunction(
           let decisionFinalTomada = false;
           let intento = 0;
 
+          //manda a convex la solicitud
+          
+
           while (!decisionFinalTomada) {
             intento++;
             const waitStepId = `${stepId}-wait-attempt-${intento}`;
