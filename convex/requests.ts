@@ -1,6 +1,7 @@
 import { internal } from "./_generated/api";
 import { httpAction, internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { inngest } from "./inngest";
 
 export const createRequest = mutation({
   args: {
@@ -45,43 +46,21 @@ export const sendToInngest = internalAction({
     clerkId: v.string(),
   },
   handler: async (_ctx, args) => {
-    const inngestUrl = process.env.INNGEST_API_URL || "https://api.inngest.com/v1/events";
-    const eventKey = process.env.INNGEST_EVENT_KEY;
-
-    console.log(inngestUrl);
-
-    if (!eventKey) {
-      console.warn("No se encontró INNGEST_EVENT_KEY, evento omitido.");
-      return;
-    }
-
+    
     try {
-      const response = await fetch(inngestUrl, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${eventKey}`,
-          "Content-Type": "application/json",
+      await inngest.send({
+        name: "workflow.trigger",
+        data: {
+          triggerId: "user.vacation",
+          solicitudId: args.solicitudId,
+          clerkId: args.clerkId,
         },
-        body: JSON.stringify({
-          name: "workflow.trigger",
-          data: {
-            triggerId: "user.vacation",
-            solicitudId: args.solicitudId,
-            clerkId: args.clerkId,
-          },
-        }),
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error enviando a Inngest (${response.status}): ${errorText}`);
-      }
-
-      console.log(`Evento enviado a Inngest para solicitud: ${args.solicitudId}`);
+ 
+      console.log(`Evento enviado correctamente a Inngest: ${args.solicitudId}`);
     } catch (error) {
-      // Al lanzar el error aquí, Convex lo registrará en los logs de fallos
-      console.error("Fallo al conectar con Inngest:", error);
-      throw error; 
+      console.error("Error enviando evento con SDK:", error);
+      throw error;
     }
   },
 });
