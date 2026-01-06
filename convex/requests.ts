@@ -1,5 +1,5 @@
 import { internal } from "./_generated/api";
-import { httpAction, internalAction, mutation, query } from "./_generated/server";
+import { internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { inngest } from "./inngest";
 
@@ -106,4 +106,32 @@ export const getAllRequests = query({
  
     return requests;
   },
+});
+
+export const evaluarStatusSolicitud = mutation({
+    args: {
+        requestId: v.id("Vacation_request"),
+    },
+    handler: async (ctx, args) => {
+        const request = await ctx.db.get(args.requestId);
+        if (!request) throw new Error("Solicitud no encontrada");
+
+        const answers = request.answers || [];
+
+        // 1. REGLA DE RECHAZO: .some() devuelve true si al menos uno cumple la condición
+        const algunRechazo = answers.some((a) => a.answer === false);
+
+        if (algunRechazo) {
+            await ctx.db.patch(args.requestId, { status: "reject" });
+            return { status: "reject" };
+        }
+
+        // 2. REGLA DE APROBACIÓN: .every() devuelve true solo si TODOS cumplen
+        const aprobacionTotal = answers.every((a) => a.answer === true);
+
+        if (aprobacionTotal) {
+            await ctx.db.patch(args.requestId, { status: "aprove" });
+            return { status: "aprove" };
+        }
+    },
 });
