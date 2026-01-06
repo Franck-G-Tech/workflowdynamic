@@ -28,8 +28,8 @@ export default defineSchema({
     end_day: v.number(),
     answers: v.optional(v.array(
         v.object({
-            id_user: v.id("Users"),
-            answer: v.boolean(),
+            clerk_id: v.string(),
+            answer: v.optional(v.boolean()),
             coment: v.optional(v.string()),
         }))
     ),
