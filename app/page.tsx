@@ -19,6 +19,13 @@ export default function HomePage() {
         >
           Solicitud
         </button>
+        
+        <button
+          className="px-10 py-3 bg-[#1d4ed8] hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-xl active:scale-95"
+          onClick={() => router.push("/my_request")}
+        >
+          Mis Solicitud
+        </button>
 
         <button
           className="px-10 py-3 bg-[#059669] hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-xl active:scale-95"
