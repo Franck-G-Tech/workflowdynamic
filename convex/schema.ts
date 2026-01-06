@@ -39,5 +39,5 @@ export default defineSchema({
         v.literal("reject"),
     ),
     clerk_id: v.optional(v.string()),
-  })
+  }).index("by_clerk_id", ["clerk_id"])
 });
