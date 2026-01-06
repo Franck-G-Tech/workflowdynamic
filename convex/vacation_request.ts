@@ -207,3 +207,18 @@ export const consultarSolicitudes = query({
     return userRequests;
   },
 });
+
+///////////////////////////////////////////////////////////
+export const cosultMyRequest = query({
+  args: {
+    clerkId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const requests = await ctx.db
+      .query("Vacation_request")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.clerkId))
+      .collect();
+
+    return requests;
+  },
+});
