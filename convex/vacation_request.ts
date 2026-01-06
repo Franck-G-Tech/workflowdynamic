@@ -1,9 +1,9 @@
 import { inngest } from "../inngest/client";
 import { GetStepTools } from "inngest";
 import { fetchMutation } from "convex/nextjs";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // Tipo para el resultado de la aprobación
@@ -157,11 +157,38 @@ export const registrarRespuesta = mutation({
         // 3. Guardamos el array actualizado
         await ctx.db.patch(args.requestId, { answers: currentAnswers });
 
+        // 4. Mandamos a los datos a Inggest
+        await ctx.scheduler.runAfter(0, internal.vacation_request.enviarEventoInngest, {
+            solicitudId: args.requestId,
+            clerk_id: args.clerk_id,
+            answer: args.answer
+        });
+
         return { success: true };
     },
 });
 
-export const getRequestsByUser = query({
+//Mandar solicitud a Inngest
+export const enviarEventoInngest = internalAction({
+  args: {
+    solicitudId: v.id("Vacation_request"),
+    clerk_id: v.string(),
+    answer: v.boolean(),
+  },
+  handler: async (_ctx, args) => {
+    await inngest.send({
+      name: "workflow.approve",
+      data: {
+        solicitudId: args.solicitudId,
+        identificador: args.clerk_id,
+        approved: args.answer,
+      },
+    });
+    console.log(`Evento enviado a Inngest para solicitud: ${args.solicitudId}`);
+  },
+});
+
+export const consultarSolicitudes = query({
   args: {
     clerkId: v.string(),
   },

@@ -1,5 +1,5 @@
 import { internal } from "./_generated/api";
-import { httpAction, internalAction, mutation, query } from "./_generated/server";
+import { internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { inngest } from "./inngest";
 
