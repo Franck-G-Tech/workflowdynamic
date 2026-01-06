@@ -106,7 +106,7 @@ export const dynamicWorkflow = inngest.createFunction(
 
             const quienRespondio = approvalEvent.data.identificador;
 
-            console.log(`${quienRespondio} es ${usuarioAutorizado}`);
+            //console.log(`${quienRespondio} es ${usuarioAutorizado}`);
 
             if (quienRespondio !== usuarioAutorizado) {
                await step.run(`${stepId}-security-alert-${intento}`, async () => {
@@ -124,6 +124,11 @@ export const dynamicWorkflow = inngest.createFunction(
               await step.run(`${stepId}-result`, async () => "Aprobado");
             } else {
               await step.run(`${stepId}-result`, async () => "Rechazado");
+
+              //Put the final answer in the request
+              await convex.mutation(api.requests.evaluarStatusSolicitud, {
+                  requestId: event.data.solicitudId as Id<"Vacation_request">,
+              });
               
               return { 
                   status: "stopped", 
