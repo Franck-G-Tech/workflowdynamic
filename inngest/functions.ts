@@ -78,10 +78,8 @@ export const dynamicWorkflow = inngest.createFunction(
 
           //manda a convex la solicitud
           await step.run(`${stepId}-assign-approver-convex`, async () => {
-            // Nota: Reemplaza 'vacations' por el nombre real de tu archivo en convex/
-            // ej: api.requests.solicitarRespuesta o api.vacations.solicitarRespuesta
             await convex.mutation(api.vacation_request.solicitarRespuesta, {
-                requestId: event.data.solicitudId as Id<"Vacation_request">, // Casteamos el ID
+                requestId: event.data.solicitudId as Id<"Vacation_request">,
                 clerk_id: usuarioAutorizado
             });
             return "Aprobador asignado en Convex";
@@ -136,6 +134,11 @@ export const dynamicWorkflow = inngest.createFunction(
           }
       }
     }
+
+    //Put the final answer in the request
+    await convex.mutation(api.requests.evaluarStatusSolicitud, {
+        requestId: event.data.solicitudId as Id<"Vacation_request">,
+    });
 
     return { success: true, workflow: workflowDoc.title };
   }
